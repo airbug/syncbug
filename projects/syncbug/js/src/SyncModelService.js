@@ -4,7 +4,7 @@
 
 //@Package('syncbug')
 
-//@Export('SyncModel')
+//@Export('SyncModelService')
 
 //@Require('Class')
 //@Require('Obj')
@@ -28,17 +28,14 @@ var Obj 	= bugpack.require('Obj');
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var SyncModel = Class.extend(Obj, {
+var SyncModelService = Class.extend(Obj, {
 
-	_constructor: function(data){
+	_constructor: function(syncModelManager){
 
-		this.dataModel = data;
-
-		for (var prop in data){
-			if(typeof data[prop] !== 'function'){
-				this.dataModel[prop] = data[prop];
-			}
-		}
+		/**
+		 * @type {SyncModelManager}
+		 */
+		this.syncModelManager 	= syncModelManager;
 	},
 
 	//-------------------------------------------------------------------------------
@@ -46,26 +43,40 @@ var SyncModel = Class.extend(Obj, {
 	//-------------------------------------------------------------------------------
 
 	/**
-	 * @param {string} prop
-	 * @return {*}
+	 * @param {} key
+	 * @param {Array.<{
+	 *		type: string,
+	 *		prop: string,
+	 *		value: *
+	 * 		}>
+	 * } changeSet
+	 * @param {function(error, syncModel)} callback
 	 */
-	get: function(prop){
-		return this.dataModel[prop];
+	updateSyncModel: function(key, changeSet, callback){
+		var _this = this;
+		this.syncModelManager.findByKey(key, function(error, syncModel){
+			if(!error){
+				changeSet.forEach(function(changeObj){
+					var changeType = changeObj.type;
+					if(changeType === "update"){
+						syncModel.set(changeObj.prop, changeObj.value);
+					} else if(changeType === "remove"){
+						syncModel.remove(changeObj.prop);
+					}
+				});
+				callback(null, syncModel);
+			} else {
+				callback(error, syncModel);
+			}
+		});
 	},
 
 	/**
-	 * @param {string} prop
+	 * @param {} key
+	 * @param {function(error)} callback
 	 */
-	remove: function(prop){
-		delete this.dataModel[prop];
-	},
-
-	/**
-	 * @param {string} prop
-	 * @param {*} value
-	 */
-	set: function(prop, value){
-		this.dataModel[prop] = value;
+	deleteSyncModel: function(key, callback){
+		this.syncModelManager.deregisterSyncModel(key, callback);
 	}
 });
 
@@ -74,4 +85,4 @@ var SyncModel = Class.extend(Obj, {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('syncbug.SyncModel', SyncModel);
+bugpack.export('syncbug.SyncModelService', SyncModelService);
