@@ -2,89 +2,82 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('synccache')
+//@Package('syncbugserver')
 
-//@Export('SyncCache')
+//@Export('SyncObjectManager')
 
 //@Require('Class')
-//@Require('EventDispatcher')
-//@Require('Map')
-//@Require('Set')
+//@Require('mongo.MongoManager')
 
 
 //-------------------------------------------------------------------------------
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context();
+var bugpack = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
-// Bugpack Modules
+// BugPack
 //-------------------------------------------------------------------------------
 
 var Class           = bugpack.require('Class');
-var EventDispatcher = bugpack.require('EventDispatcher');
-var Map             = bugpack.require('Map');
-var Set             = bugpack.require('Set');
+var MongoManager    = bugpack.require('mongo.MongoManager');
 
 
 //-------------------------------------------------------------------------------
-// Declare Class
+// Class
 //-------------------------------------------------------------------------------
 
-var SyncCache = Class.extend(EventDispatcher, {
+var SyncObjectManager = Class.extend(MongoManager, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
-    /**
-     *
-     */
-    _constructor: function() {
+    _constructor: function(model, schema) {
 
-        this._super();
-
+        this._super(model, schema);
 
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Properties
         //-------------------------------------------------------------------------------
 
-        /**
-         * @private
-         * @type {Map.<string, *>}
-         */
-        this.valueMap = new Map();
+
     },
 
 
     //-------------------------------------------------------------------------------
-    // Public Instance Methods
+    // Instance Methods
     //-------------------------------------------------------------------------------
 
     /**
-     * @param {string} key
-     * @param {function(Error, *)} callback
+     * @param {Object} syncObject
+     * @param {function(Error, Session)=} callback
      */
-    get: function(key, callback) {
-
-    },
-
-    delete: function(key, callback) {
-
+    createSyncObject: function(syncObject, callback) {
+        this.create(syncObject, function(error, syncObject) {
+            if (callback) {
+                callback(error, syncObject);
+            }
+        });
     },
 
     /**
      * @param {string} key
-     * @param {*} value
-     * @param {function(Error, *)} callback
+     * @param {function(Error, SyncObject)} callback
      */
-    set: function(key, value, callback) {
-        this.valueMap.put(key, value);
+    findSyncObjectByKey: function(key, callback) {
+        this.findOne({key: key}, callback);
     },
 
-    sync: function(key, callback)
+    /**
+     * @param {string} key
+     * @param {function(Error)}
+     */
+    removeSyncObjectByKey: function(key, callback) {
+        this.remove({key: key}, callback);
+    }
 });
 
 
@@ -92,5 +85,4 @@ var SyncCache = Class.extend(EventDispatcher, {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('synccache.SyncCache', SyncCache);
-
+bugpack.export('syncbugserver.SyncObjectManager', SyncObjectManager);

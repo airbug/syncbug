@@ -26,12 +26,12 @@
 //@Require('socketio:server.SocketIoManager')
 //@Require('socketio:server.SocketIoServer')
 //@Require('socketio:server.SocketIoServerConfig')
-
+//@Require('syncbugserver.CallService')
 //@Require('syncbugserver.SyncbugController')
-
-//@Require('syncbugserver.SyncbugService')
-
-
+//@Require('syncbugserver.SyncObject')
+//@Require('syncbugserver.SyncObjectManager')
+//@Require('syncbugserver.SyncObjectSchema')
+//@Require('syncbugserver.SyncObjectService')
 
 
 //-------------------------------------------------------------------------------
@@ -41,7 +41,9 @@
 var bugpack                 = require('bugpack').context();
 var connect                 = require('connect');
 var express                 = require('express');
+var mongoose                = require('mongoose');
 var path                    = require('path');
+var synccache               = require('synccache');
 
 
 //-------------------------------------------------------------------------------
@@ -67,11 +69,12 @@ var Handshaker              = bugpack.require('handshaker.Handshaker');
 var SocketIoManager         = bugpack.require('socketio:server.SocketIoManager');
 var SocketIoServer          = bugpack.require('socketio:server.SocketIoServer');
 var SocketIoServerConfig    = bugpack.require('socketio:server.SocketIoServerConfig');
-
+var CallService             = bugpack.require('syncbugserver.CallService');
 var SyncbugController       = bugpack.require('syncbugserver.SyncbugController');
-
-var ConnectionService       = bugpack.require('syncbugserver.ConnectionService');
-var SyncbugService          = bugpack.require('syncbugserver.SyncbugService');
+var SyncObject              = bugpack.require('syncbugserver.SyncObject');
+var SyncObjectManager       = bugpack.require('syncbugserver.SyncObjectManager');
+var SyncObjectSchema        = bugpack.require('syncbugserver.SyncObjectSchema');
+var SyncObjectService       = bugpack.require('syncbugserver.SyncObjectService');
 
 
 //-------------------------------------------------------------------------------
@@ -125,9 +128,9 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
         /**
          * @private
-         * @type {ConnectionService}
+         * @type {CallService}
          */
-        this._connectionService     = null;
+        this._callService     = null;
 
         /**
          * @private
@@ -143,9 +146,27 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
         /**
          * @private
+         * @type {mongoose}
+         */
+        this._mongoose              = null;
+
+        /**
+         * @private
          * @type {SyncbugController}
          */
         this._syncbugController     = null;
+
+        /**
+         * @private
+         * @type {SyncCache}
+         */
+        this._syncCache             = null;
+
+        /**
+         * @private
+         * @type {SyncObjectService}
+         */
+        this._syncObjectService        = null;
     },
 
 
@@ -162,6 +183,8 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
         var config = this._config;
 
+        this._mongoose.connect('mongodb://' + config.mongoDbIp + '/syncbug');
+
         this._expressApp.configure(function(){
             _this._expressApp.set('port', config.port);
         });
@@ -176,20 +199,22 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
         $series([
 
+            $task(function(flow) {
+
+            }),
+
             //-------------------------------------------------------------------------------
             // Controllers
             //-------------------------------------------------------------------------------
 
-            $parallel([
-                $task(function(flow){
-                    _this._syncbugController.configure(function(error) {
-                        if (!error) {
-                            console.log("syncbugController configured");
-                        }
-                        flow.complete(error);
-                    })
+            $task(function(flow) {
+                _this._syncbugController.configure(function(error) {
+                    if (!error) {
+                        console.log("syncbugController configured");
+                    }
+                    flow.complete(error);
                 })
-            ]),
+            }),
 
 
             //-------------------------------------------------------------------------------
@@ -264,11 +289,11 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
     /**
      * @param {BugCallServer} bugCallServer
-     * @return {ConnectionService}
+     * @return {CallService}
      */
-    connectionService: function(bugCallServer){
-        this._connectionService = new ConnectionService(bugCallServer);
-        return this._connectionService;
+    callService: function(bugCallServer){
+        this._callService = new CallService(bugCallServer);
+        return this._callService;
     },
 
     /**
@@ -298,6 +323,14 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
     },
 
     /**
+     * @return {Mongoose}
+     */
+    mongoose: function() {
+        this._mongoose = mongoose;
+        return this._mongoose;
+    },
+
+    /**
      * @param {SocketIoServer} socketIoServer
      * @return {SocketIoManager}
      */
@@ -323,8 +356,56 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
         return this._socketIoServerConfig;
     },
 
-    syncService: function(syncManager, syncCache, connectionService) {
+    /**
+     * @param {BugCallRouter} bugCallRouter
+     * @param {SyncObjectService} syncObjectService
+     * @return {SyncbugController}
+     */
+    syncbugController: function(bugCallRouter, syncObjectService) {
+        this._syncbugController = new SyncbugController(bugCallRouter, syncObjectService);
+        return this._syncbugController;
+    },
 
+    /**
+     * @return {SyncCache}
+     */
+    syncCache: function() {
+        this._syncCache = synccache;
+        return this._syncCache;
+    },
+
+    /**
+     * @return {SyncObject}
+     */
+    syncObject: function() {
+        return SyncObject;
+    },
+
+    /**
+     * @param {SyncObject} model
+     * @param {SyncObjectSchema} schema
+     * @return {SyncObjectManager}
+     */
+    syncObjectManager: function(model, schema) {
+        return new SyncObjectManager(model, schema);
+    },
+
+    /**
+     * @return {SyncObjectSchema}
+     */
+    syncObjectSchema: function() {
+        return SyncObjectSchema;
+    },
+
+    /**
+     * @param {CallService} callService
+     * @param {SyncCache} syncCache
+     * @param {SyncObjectManager} syncObjectManager
+     * @return {SyncObjectService}
+     */
+    syncObjectService: function(callService, syncCache, syncObjectManager) {
+        this._syncObjectService = new SyncObjectService(callService,  syncCache, syncObjectManager);
+        return this._syncObjectService;
     },
 
 
@@ -379,10 +460,11 @@ annotate(SyncbugServerConfiguration).with(
 
 
         //-------------------------------------------------------------------------------
-        // Common Config Object
+        // Common
         //-------------------------------------------------------------------------------
 
         module("config"),
+        module("mongoose"),
 
 
         //-------------------------------------------------------------------------------
@@ -414,8 +496,8 @@ annotate(SyncbugServerConfiguration).with(
             .args([
                 arg("socketIoServer").ref("socketIoServer")
             ]),
-        module("socketIoServer").
-            args([
+        module("socketIoServer")
+            .args([
                 arg("config").ref("socketIoServerConfig"),
                 arg("expressServer").ref("expressServer"),
                 arg("handshaker").ref("handshaker")
@@ -448,8 +530,7 @@ annotate(SyncbugServerConfiguration).with(
         module("syncbugController")
             .args([
                 arg("bugCallRouter").ref("bugCallRouter"),
-                arg("syncService").ref("syncService"),
-                arg("connectionService").ref("connectionService")
+                arg("syncObjectService").ref("syncObjectService")
             ]),
 
 
@@ -457,13 +538,15 @@ annotate(SyncbugServerConfiguration).with(
         // Services
         //-------------------------------------------------------------------------------
 
-        module("connectionService")
+        module("callService")
             .args([
-            arg("bugCallServer").ref("bugCallServer")
-        ]),
-        module("syncService")
+                arg("bugCallServer").ref("bugCallServer")
+            ]),
+        module("syncObjectService")
             .args([
-                arg("syncManager").ref("syncManager")
+                arg("callService").ref("callService"),
+                arg("syncCache").ref("syncCache"),
+                arg("syncObjectManager").ref("syncObjectManager")
             ]),
 
 
@@ -471,7 +554,25 @@ annotate(SyncbugServerConfiguration).with(
         // Managers
         //-------------------------------------------------------------------------------
 
-        module("syncManager")
+        module("syncObjectManager")
+            .args([
+                arg("model").ref("syncObject"),
+                arg("schema").ref("syncObjectSchema")
+            ]),
+        
+
+        //-------------------------------------------------------------------------------
+        // Models
+        //-------------------------------------------------------------------------------
+
+        module("syncObject"),
+
+
+        //-------------------------------------------------------------------------------
+        // Schemas
+        //-------------------------------------------------------------------------------
+
+        module("syncObjectSchema")
     ])
 );
 

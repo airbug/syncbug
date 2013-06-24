@@ -2,15 +2,14 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('airbugserver')
+//@Package('syncbugserver')
 
-//@Export('ConnectionService')
+//@Export('CallService')
 
 //@Require('Class')
-//@Require('Obj')
 //@Require('Map')
+//@Require('Obj')
 //@Require('Set')
-//@Require('bugcall.BugCallServerEvent')
 
 
 //-------------------------------------------------------------------------------
@@ -25,17 +24,16 @@ var bugpack         = require('bugpack').context();
 //-------------------------------------------------------------------------------
 
 var Class               = bugpack.require('Class');
-var Obj                 = bugpack.require('Obj');
 var Map                 = bugpack.require('Map');
+var Obj                 = bugpack.require('Obj');
 var Set                 = bugpack.require('Set');
-var BugCallServerEvent  = bugpack.require('bugcall.BugCallServerEvent')
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var ConnectionService = Class.extend(Obj, {
+var CallService = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
@@ -64,7 +62,6 @@ var ConnectionService = Class.extend(Obj, {
          * @type {Map}
          */
         this.userToConnectionsMap       = new Map();
-
     },
 
 
@@ -131,5 +128,5 @@ var ConnectionService = Class.extend(Obj, {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('airbugserver.ConnectionService', ConnectionService);
+bugpack.export('syncbugserver.CallService', CallService);
 

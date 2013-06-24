@@ -21,115 +21,135 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class 		= bugpack.require('Class'); 
-var Obj 		= bugpack.require('Obj');
-var SyncModel 	= bugpack.require('SyncModel');
+var Class       = bugpack.require('Class');
+var Obj         = bugpack.require('Obj');
+var SyncModel   = bugpack.require('SyncModel');
 
 
 //-------------------------------------------------------------------------------
-// Declare Class
+// Class
 //-------------------------------------------------------------------------------
 
 var SyncBugClient = Class.extend(Obj, {
 
-	_constructor: function(bugCallClient, syncModelManager){
+    //-------------------------------------------------------------------------------
+    // Constructor
+    //-------------------------------------------------------------------------------
 
-		/**
-		 * @type {BugCallClient}
-		 */
-		this.bugCallClient 		= bugCallClient;
+    _constructor: function(bugCallClient, syncModelManager){
 
-		/**
-		 * @type {SyncModelManager}
-		 */
-		this.syncModelManager 	= syncModelManager;
-	},
+        //-------------------------------------------------------------------------------
+        // Properties
+        //-------------------------------------------------------------------------------
+
+        /**
+         * @private
+         * @type {BugCallClient}
+         */
+        this.bugCallClient      = bugCallClient;
+
+        /**
+         * @private
+         * @type {SyncModelManager}
+         */
+        this.syncModelManager   = syncModelManager;
+    },
 
 
-	//-------------------------------------------------------------------------------
-	// Instance Methods (Browser)
-	//-------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------
+    // Instance Methods
+    //-------------------------------------------------------------------------------
 
-	/**
-	 * @param {string} key
-	 * @param {
-	 * 		accessKey: string
-	 * 		refresh: boolean
-	 * } options
-	 * @param {function(exception, syncModel)} callback
-	 */
-	get: function(key, options, callback){
-		var _this = this;
-		var requestType = SyncBugClient.requestType.GET;
-		var data 		= {
-			options: options
-		};
+    /**
+     * @param {string} key
+     * @param {
+     * 		accessKey: string
+     * 		refresh: boolean
+     * } options
+     * @param {function(exception, syncModel)} callback
+     */
+    get: function(key, options, callback){
+        var _this = this;
+        var requestType = SyncBugClient.requestType.GET;
+        var data        = {
+            options: options
+        };
 
-		this.syncModelManager.findSyncModelByKey(key, function(error, syncModel){
-			if(!error && syncModel && !options.refresh){
-				callback(null, syncModel);
-			} else {
-				_this.bugCallClient.request(requestType, data, function(exception, callResponse){
-					if(!exception){
-						var responseType 	= callResponse.getType();
-						var syncModelObj 	= callResponse.getData();
-						_this.syncModelManager.createSyncModel(syncModelObj, function(error, syncModel){
-							callback(error, syncModel);
-						});
-					} else {
-						callback(exception, null);
-					}
-				});
-			}
-		});
-	},
+        this.syncModelManager.findSyncModelByKey(key, function(error, syncModel) {
+            if (!error && syncModel && !options.refresh) {
+                callback(null, syncModel);
+            } else {
+                _this.bugCallClient.request(requestType, data, function(exception, callResponse) {
+                    if (!exception) {
+                        var responseType = callResponse.getType();
+                        if (responseType === "getResponse") {
+                            var syncModelObj = callResponse.getData().syncObject;
+                            _this.syncModelManager.createSyncModel(syncModelObj, function(error, syncModel){
+                                callback(error, syncModel);
+                            });
+                        } else {
+                            callback(new Error("Unknown responseType '" + responseType + "'"));
+                        }
+                    } else {
+                        callback(exception, null);
+                    }
+                });
+            }
+        });
+    },
 
-	//-------------------------------------------------------------------------------
-	// Instance Methods (Server)
-	//-------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------
+    // Instance Methods (Server)
+    //-------------------------------------------------------------------------------
 
-	/**
-	 * @param {string} key
-	 * @param {*} syncModelObj
-	 * @param {*} options
-	 * @param {function(exception, {*})} callback
-	 */
-	put: function(key, syncModelObj, options, callback){
-		var requestType = SyncBugClient.requestType.PUT;
-		var data 		= {
-			syncModelObj: syncModelObj,
-			options: options
-		};
-		this.bugCallClient.request(requestType, data, function(exception, callResponse){
-			var data = callResponse.getData();
-			callback(exception, data);
-		});
-	},
+    /**
+     * @param {string} key
+     * @param {*} syncObject
+     * @param {*} options
+     * @param {function(exception, {*})} callback
+     */
+    put: function(key, syncObject, options, callback){
+        var requestType = SyncBugClient.requestType.PUT;
+        var data        = {
+            key: key,
+            syncObject: syncObject,
+            options: options
+        };
+        this.bugCallClient.request(requestType, data, function(exception, callResponse) {
+            var data = callResponse.getData();
+            callback(exception, data);
+        });
+    },
 
-	/**
-	 * @param {string} key
-	 * @param {*} options
-	 * @param {function(exception)} callback
-	 */
-	remove: function(key, options, callback){
-		var requestType = SyncBugClient.requestType.REMOVE;
-		var data 		= {
-			key: key,
-			options: options
-		};
-		this.bugCallClient.request(requestType, data, function(exception, callResponse){
-			callback(exception);
-		});
-	}
+    /**
+     * @param {string} key
+     * @param {*} options
+     * @param {function(exception)} callback
+     */
+    remove: function(key, options, callback){
+        var requestType = SyncBugClient.requestType.REMOVE;
+        var data        = {
+            key: key,
+            options: options
+        };
+        this.bugCallClient.request(requestType, data, function(exception, callResponse) {
+            callback(exception);
+        });
+    }
 });
+
+
+//-------------------------------------------------------------------------------
+// Static Variables
+//-------------------------------------------------------------------------------
 
 /**
  * @enum {string}
  */
 SyncBugClient.requestType = {
-	GET: "syncbugclient.get",
-	PUT: "syncbugclient.put",
-	REMOVE: "syncbugclient.remove"
+    GET: "get",
+    PUT: "put",
+    REMOVE: "remove"
 };
 
 
