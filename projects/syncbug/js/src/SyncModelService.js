@@ -53,8 +53,7 @@ var SyncModelService = Class.extend(Obj, {
 	 * @param {function(error, syncModel)} callback
 	 */
 	updateSyncModel: function(key, changeSet, callback){
-		var _this = this;
-		this.syncModelManager.findByKey(key, function(error, syncModel){
+		this.syncModelManager.findSyncModelByKey(key, function(error, syncModel){
 			if(!error){
 				changeSet.forEach(function(changeObj){
 					var changeType = changeObj.type;
@@ -76,7 +75,7 @@ var SyncModelService = Class.extend(Obj, {
 	 * @param {function(error)} callback
 	 */
 	deleteSyncModel: function(key, callback){
-		this.syncModelManager.deregisterSyncModel(key, callback);
+		this.syncModelManager.deleteSyncModelByKey(key, callback);
 	}
 });
 

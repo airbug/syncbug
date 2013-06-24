@@ -35,7 +35,6 @@ var SyncModelController = Class.extend(Obj, {
 		/**
 		 *
 		 */
-		 //TODO: BugCallRouter needs to be rewritten to allow for use with BugCallClient
 		this.bugCallRouter 		= bugCallRouter;
 		/**
 		 *
@@ -89,7 +88,9 @@ var SyncModelController = Class.extend(Obj, {
 					responder.sendResponse(response);
 				});
 			}
-		})
+		});
+
+		callback();
 	}
 });
 

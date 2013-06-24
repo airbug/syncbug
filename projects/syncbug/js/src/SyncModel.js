@@ -30,13 +30,13 @@ var Obj 	= bugpack.require('Obj');
 
 var SyncModel = Class.extend(Obj, {
 
-	_constructor: function(data){
+	_constructor: function(dataObj){
 
-		this.dataModel = data;
+		this.dataObj = dataObj;
 
-		for (var prop in data){
-			if(typeof data[prop] !== 'function'){
-				this.dataModel[prop] = data[prop];
+		for (var prop in dataObj){
+			if(typeof dataObj[prop] !== 'function'){
+				this.dataObj[prop] = dataObj[prop];
 			}
 		}
 	},
@@ -50,14 +50,14 @@ var SyncModel = Class.extend(Obj, {
 	 * @return {*}
 	 */
 	get: function(prop){
-		return this.dataModel[prop];
+		return this.dataObj[prop];
 	},
 
 	/**
 	 * @param {string} prop
 	 */
 	remove: function(prop){
-		delete this.dataModel[prop];
+		delete this.dataObj[prop];
 	},
 
 	/**
@@ -65,7 +65,7 @@ var SyncModel = Class.extend(Obj, {
 	 * @param {*} value
 	 */
 	set: function(prop, value){
-		this.dataModel[prop] = value;
+		this.dataObj[prop] = value;
 	}
 });
 
