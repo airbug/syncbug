@@ -37,6 +37,8 @@ var SyncbugController = Class.extend(Obj, {
 
     _constructor: function(bugCallRouter, syncObjectService) {
 
+        this._super();
+
         //-------------------------------------------------------------------------------
         // Properties
         //-------------------------------------------------------------------------------
@@ -54,6 +56,7 @@ var SyncbugController = Class.extend(Obj, {
          */
         this.syncObjectService = syncObjectService;
     },
+
 
     //-------------------------------------------------------------------------------
     // Instance Methods

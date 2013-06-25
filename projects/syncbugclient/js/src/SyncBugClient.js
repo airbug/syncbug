@@ -23,7 +23,7 @@ var bugpack = require('bugpack').context();
 
 var Class       = bugpack.require('Class');
 var Obj         = bugpack.require('Obj');
-var SyncModel   = bugpack.require('SyncModel');
+var SyncModel   = bugpack.require('syncbug.SyncModel');
 
 
 //-------------------------------------------------------------------------------
