@@ -2,15 +2,13 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('syncbugserver')
+//@Package('syncbug')
 
-//@Export('SyncbugServerApplication')
-//@Autoload
+//@Export('SyncObject')
 
 //@Require('Class')
-//@Require('Obj')
-//@Require('bugioc.ApplicationContext')
-//@Require('bugioc.ConfigurationScan')
+//@Require('Event')
+//@Require('EventDispatcher')
 
 
 //-------------------------------------------------------------------------------
@@ -24,61 +22,84 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class               = bugpack.require('Class');
-var Obj                 = bugpack.require('Obj');
-var ApplicationContext  = bugpack.require('bugioc.ApplicationContext');
-var ConfigurationScan   = bugpack.require('bugioc.ConfigurationScan');
+var Class           = bugpack.require('Class');
+var Event           = bugpack.require('Event');
+var EventDispatcher = bugpack.require('EventDispatcher');
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var SyncbugServerApplication = Class.extend(Obj, {
+var SyncObject = Class.extend(EventDispatcher, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
-    _constructor: function() {
+    _constructor: function(syncObject) {
 
         this._super();
 
-
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Properties
         //-------------------------------------------------------------------------------
 
-        /**
-         * @private
-         * @type {ApplicationContext}
-         */
-        this.applicationContext = new ApplicationContext();
-
-        /**
-         * @private
-         * @type {ConfigurationScan}
-         */
-        this.configurationScan = new ConfigurationScan(this.applicationContext);
+        this.syncObject = syncObject;
     },
 
-
     //-------------------------------------------------------------------------------
-    // Class Methods
+    // Instance Methods
     //-------------------------------------------------------------------------------
 
     /**
-     * @param {function(Error)} callback
+     * @param {string} prop
+     * @return {*}
      */
-    start: function(callback) {
-        this.configurationScan.scan();
-        this.applicationContext.process();
-        this.applicationContext.initialize(callback);
+    get: function(prop) {
+        return this.syncObject[prop];
+    },
+
+    /**
+     * @param {string} prop
+     */
+    remove: function(prop) {
+        delete this.syncObject[prop];
+    },
+
+    /**
+     * @param {string} prop
+     * @param {*} value
+     */
+    set: function(prop, value) {
+        this.syncObject[prop] = value;
+    },
+
+    /**
+     *
+     * @param syncObject
+     */
+    setSyncObject: function(syncObject) {
+        this.syncObject = syncObject;
+        this.dispatchEvent(new Event(SyncObject.EventTypes.CHANGED));
     }
 });
+
+
+//-------------------------------------------------------------------------------
+// Static Properties
+//-------------------------------------------------------------------------------
+
+/**
+ * @enum {string}
+ */
+SyncObject.EventTypes = {
+    CHANGED: "changed"
+};
+
 
 //-------------------------------------------------------------------------------
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('syncbugserver.SyncbugServerApplication', SyncbugServerApplication);
+bugpack.export('syncbug.SyncObject', SyncObject);

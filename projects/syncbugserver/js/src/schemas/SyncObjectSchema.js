@@ -28,21 +28,19 @@ var Mixed       = mongoose.Schema.Types.Mixed;
 //-------------------------------------------------------------------------------
 
 var SyncObjectSchema = new Schema({
-    createdAt: Date,
     object: {
         type: Mixed,
         required: true
     },
-    key: {
+    syncKey: {
         type: String,
         require: true,
         unique: true
-    },
-    updatedAt: Date
+    }
 });
 
 SyncObjectSchema.index({
-    syncId: 1
+    syncKey: 1
 });
 
 

@@ -128,12 +128,6 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
         /**
          * @private
-         * @type {CallService}
-         */
-        this._callService     = null;
-
-        /**
-         * @private
          * @type {ExpressApp}
          */
         this._expressApp            = null;
@@ -152,6 +146,18 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
         /**
          * @private
+         * @type {SocketIoServer}
+         */
+        this._socketIoServer        = null;
+
+        /**
+         * @private
+         * @type {SocketIoServerConfig}
+         */
+        this._socketIoServerConfig  = null;
+
+        /**
+         * @private
          * @type {SyncbugController}
          */
         this._syncbugController     = null;
@@ -161,12 +167,6 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
          * @type {SyncCache}
          */
         this._syncCache             = null;
-
-        /**
-         * @private
-         * @type {SyncObjectService}
-         */
-        this._syncObjectService        = null;
     },
 
 
@@ -273,10 +273,17 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
     /**
      * @param {SocketIoManager}
-        * @return {CallServer}
+     * @return {CallServer}
      */
     callServer: function(socketIoManager) {
         return new CallServer(socketIoManager);
+    },
+
+    /**
+     * @return {CallService}
+     */
+    callService: function(){
+        return new CallService();
     },
 
     /**
@@ -285,15 +292,6 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
     config: function() {
         this._config = this.loadConfig(this._configFilePath);
         return this._config;
-    },
-
-    /**
-     * @param {BugCallServer} bugCallServer
-     * @return {CallService}
-     */
-    callService: function(bugCallServer){
-        this._callService = new CallService(bugCallServer);
-        return this._callService;
     },
 
     /**
@@ -398,14 +396,14 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
     },
 
     /**
+     * @param {BugCallServer} bugCallServer
      * @param {CallService} callService
      * @param {SyncCache} syncCache
      * @param {SyncObjectManager} syncObjectManager
      * @return {SyncObjectService}
      */
-    syncObjectService: function(callService, syncCache, syncObjectManager) {
-        this._syncObjectService = new SyncObjectService(callService,  syncCache, syncObjectManager);
-        return this._syncObjectService;
+    syncObjectService: function(bugCallServer, callService, syncCache, syncObjectManager) {
+        return new SyncObjectService(bugCallServer, callService,  syncCache, syncObjectManager);
     },
 
 
@@ -538,12 +536,10 @@ annotate(SyncbugServerConfiguration).with(
         // Services
         //-------------------------------------------------------------------------------
 
-        module("callService")
-            .args([
-                arg("bugCallServer").ref("bugCallServer")
-            ]),
+        module("callService"),
         module("syncObjectService")
             .args([
+                arg("bugCallServer").ref("bugCallServer"),
                 arg("callService").ref("callService"),
                 arg("syncCache").ref("syncCache"),
                 arg("syncObjectManager").ref("syncObjectManager")

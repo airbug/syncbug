@@ -32,51 +32,40 @@ var MongoManager    = bugpack.require('mongo.MongoManager');
 var SyncObjectManager = Class.extend(MongoManager, {
 
     //-------------------------------------------------------------------------------
-    // Constructor
-    //-------------------------------------------------------------------------------
-
-    _constructor: function(model, schema) {
-
-        this._super(model, schema);
-
-        //-------------------------------------------------------------------------------
-        // Properties
-        //-------------------------------------------------------------------------------
-
-
-    },
-
-
-    //-------------------------------------------------------------------------------
-    // Instance Methods
+    // Public Instance Methods
     //-------------------------------------------------------------------------------
 
     /**
-     * @param {Object} syncObject
+     * @param {string} syncKey
+     * @param {function(Error, SyncObject)} callback
+     */
+    findSyncObjectBySyncKey: function(syncKey, callback) {
+        this.findOne({syncKey: syncKey}, callback);
+    },
+
+    /**
+     * @param {string} syncKey
+     * @param {function(Error)}
+     */
+    removeSyncObjectBySyncKey: function(syncKey, callback) {
+        this.remove({syncKey: syncKey}, callback);
+    },
+
+    /**
+     * @param {string} syncKey
+     * @param {Object} object
      * @param {function(Error, Session)=} callback
      */
-    createSyncObject: function(syncObject, callback) {
-        this.create(syncObject, function(error, syncObject) {
+    updateOrCreateSyncObject: function(syncKey, object, callback) {
+        var syncObject = {
+            syncKey: syncKey,
+            object: object
+        };
+        this.findOneAndUpdate({syncKey:syncKey}, syncObject, {upsert: true, new: true}, function(error, syncObject) {
             if (callback) {
                 callback(error, syncObject);
             }
         });
-    },
-
-    /**
-     * @param {string} key
-     * @param {function(Error, SyncObject)} callback
-     */
-    findSyncObjectByKey: function(key, callback) {
-        this.findOne({key: key}, callback);
-    },
-
-    /**
-     * @param {string} key
-     * @param {function(Error)}
-     */
-    removeSyncObjectByKey: function(key, callback) {
-        this.remove({key: key}, callback);
     }
 });
 

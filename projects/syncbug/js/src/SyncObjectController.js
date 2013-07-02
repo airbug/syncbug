@@ -4,7 +4,7 @@
 
 //@Package('syncbug')
 
-//@Export('SyncModelController')
+//@Export('SyncObjectController')
 
 //@Require('Class')
 //@Require('Obj')
@@ -29,30 +29,36 @@ var Obj     = bugpack.require('Obj');
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var SyncModelController = Class.extend(Obj, {
+var SyncObjectController = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
-    _constructor: function(bugCallRouter, syncModelService){
+    _constructor: function(bugCallRouter, syncObjectService){
+
+        this._super();
 
         //-------------------------------------------------------------------------------
         // Properties
         //-------------------------------------------------------------------------------
 
         /**
-         *
+         * @private
+         * @type {BugCallRouter}
          */
-        this.bugCallRouter 		= bugCallRouter;
+        this.bugCallRouter      = bugCallRouter;
+
         /**
-         *
+         * @private
+         * @type {SyncObjectService}
          */
-        this.syncModelService 	= syncModelService;
+        this.syncObjectService   = syncObjectService;
     },
 
+
     //-------------------------------------------------------------------------------
-    // Instance Methods
+    // Public Instance Methods
     //-------------------------------------------------------------------------------
 
     /**
@@ -61,38 +67,37 @@ var SyncModelController = Class.extend(Obj, {
     configure: function(callback){
         var _this = this;
         this.bugCallRouter.addAll({
-            update: function(request, responder){
-                var data 		= request.getData();
-                var key 		= data.key;
-                /* @type {Array.<{}>] */
-                var changeSet 	= data.changeSet;
-                _this.syncModelService.updateSyncModel(key, changeSet, function(error, syncModel){
+            delete: function(request, responder){
+                var data    = request.getData();
+                var syncKey = data.syncKey;
+                _this.syncObjectService.deleteSyncObject(syncKey, function(error){
                     if(!error){
-                        var data 		= {key: key};
-                        var response 	= responder.response("updatedSyncModel", data);
+                        var data        = {syncKey: syncKey};
+                        var response    = responder.response("deleteResponse", data);
                     } else {
-                        var data 		= {
-                            key: key,
+                        var data        = {
+                            syncKey: syncKey,
                             error: error
                         };
-                        var response 	= responder.response("updateSyncModelError", data);
+                        var response    = responder.response("deleteError", data);
                     }
                     responder.sendResponse(response);
                 });
             },
-            delete: function(request, responder){
-                var data 	= request.getData();
-                var key 	= data.key;
-                _this.syncModelService.deleteSyncModel(key, function(error){
+            set: function(request, responder){
+                var data        = request.getData();
+                var syncKey     = data.syncKey;
+                var syncObject 	= data.syncObject;
+                _this.syncObjectService.setSyncObject(syncKey, syncObject, function(error, SyncObject) {
                     if(!error){
-                        var data 		= {key: key};
-                        var response 	= responder.response("deletedSyncModel", data);
+                        var data        = {syncKey: syncKey};
+                        var response    = responder.response("setResponse", data);
                     } else {
-                        var data 		= {
-                            key: key,
+                        var data        = {
+                            syncKey: syncKey,
                             error: error
                         };
-                        var response 	= responder.response("deleteSyncModelError", data);
+                        var response    = responder.response("setError", data);
                     }
                     responder.sendResponse(response);
                 });
@@ -108,4 +113,4 @@ var SyncModelController = Class.extend(Obj, {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('syncbug.SyncModelController', SyncModelController);
+bugpack.export('syncbug.SyncObjectController', SyncObjectController);

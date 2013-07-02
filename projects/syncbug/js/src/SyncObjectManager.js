@@ -2,103 +2,98 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('syncbugserver')
+//@Package('syncbug')
 
-//@Export('CallService')
+//@Export('SyncObjectManager')
 
 //@Require('Class')
-//@Require('DualMultiSetMap')
+//@Require('Map')
 //@Require('Obj')
+//@Require('syncbug.SyncObject')
 
 
 //-------------------------------------------------------------------------------
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context();
+var bugpack = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
-// Bugpack Modules
+// BugPack
 //-------------------------------------------------------------------------------
 
-var Class               = bugpack.require('Class');
-var DualMultiSetMap     = bugpack.require('DualMultiSetMap');
-var Obj                 = bugpack.require('Obj');
+var Class       = bugpack.require('Class');
+var Map         = bugpack.require('Map');
+var Obj         = bugpack.require('Obj');
+var SyncObject  = bugpack.require('syncbug.SyncObject');
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var CallService = Class.extend(Obj, {
+var SyncObjectManager = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
-    /**
-     * 
-     */
-    _constructor: function() {
+    _constructor: function(){
 
         this._super();
 
-
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Properties
         //-------------------------------------------------------------------------------
 
         /**
          * @private
-         * @type {DualMultiSetMap.<string, CallManager>}
+         * @type {Map}
          */
-        this.syncKeyToCallManagerMap    = new DualMultiSetMap();
+        this.syncObjectMap = new Map();
     },
-
 
     //-------------------------------------------------------------------------------
-    // Public Instance Methods
+    // Instance Methods
     //-------------------------------------------------------------------------------
 
     /**
      * @param {string} syncKey
-     * @param {CallManager} callManager
+     * @param {{*}} object
+     * @param {function(error, syncObject)} callback
      */
-    deregisterCallManagerForSyncKey: function(syncKey, callManager) {
-        this.syncKeyToCallManagerMap.removeKeyValuePair(syncKey, callManager);
+    createSyncObject: function(syncKey, object, callback){
+        if (!this.syncObjectMap.containsKey(syncKey)) {
+            var syncObject = new SyncObject(object);
+            this.syncObjectMap.put(syncKey, syncObject);
+            callback(null, syncObject);
+        } else {
+            callback(new Error("SyncObject of key '", syncKey, "' is already registered"));
+        }
     },
 
     /**
      * @param {string} syncKey
-     * @return {Set.<CallManager>}
+     * @param {function(error)} callback
      */
-    getCallManagerSetBySyncKey: function(syncKey) {
-        return this.syncKeyToCallManagerMap.getValue(syncKey);
-    },
+    deleteSyncObjectBySyncKey: function(syncKey, callback){
+        var syncObject = this.syncObjectMap.get(syncKey);
+        if (syncObject) {
+            this.syncObjectMap.remove(syncKey);
 
-    /**
-     * @param {CallManager} callManager
-     * @return {Set.<string>}
-     */
-    getSyncKeySetByCallManager: function(callManager) {
-        return this.syncKeyToCallManagerMap.getKey(callManager);
-    },
-
-    /**
-     * @param {string} syncKey
-     * @return {Boolean}
-     */
-    hasSyncKey: function(syncKey) {
-        return this.syncKeyToCallManagerMap.containsKey(syncKey);
+        } else {
+            callback(new Error("SyncObject of key '", syncKey, "' is already deleted"));
+        }
     },
 
     /**
      * @param {string} syncKey
-     * @param {CallManager} callManager
+     * @param {function(error, SyncObject)} callback
      */
-    registerCallManagerForSyncKey: function(syncKey, callManager) {
-        this.syncKeyToCallManagerMap.put(syncKey, callManager);
+    getSyncObjectBySyncKey: function(syncKey, callback){
+        var syncObject = this.syncObjectMap.get(syncKey);
+        callback(null, syncObject);
     }
 });
 
@@ -107,4 +102,4 @@ var CallService = Class.extend(Obj, {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('syncbugserver.CallService', CallService);
+bugpack.export('syncbug.SyncObjectManager', SyncObjectManager);

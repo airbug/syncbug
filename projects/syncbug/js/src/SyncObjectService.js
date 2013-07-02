@@ -2,12 +2,11 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('syncbugserver')
+//@Package('syncbug')
 
-//@Export('CallService')
+//@Export('SyncObjectService')
 
 //@Require('Class')
-//@Require('DualMultiSetMap')
 //@Require('Obj')
 
 
@@ -15,45 +14,40 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context();
+var bugpack = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
-// Bugpack Modules
+// BugPack
 //-------------------------------------------------------------------------------
 
-var Class               = bugpack.require('Class');
-var DualMultiSetMap     = bugpack.require('DualMultiSetMap');
-var Obj                 = bugpack.require('Obj');
+var Class   = bugpack.require('Class');
+var Obj     = bugpack.require('Obj');
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var CallService = Class.extend(Obj, {
+var SyncObjectService = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
-    /**
-     * 
-     */
-    _constructor: function() {
+    _constructor: function(syncObjectManager){
 
         this._super();
 
-
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Properties
         //-------------------------------------------------------------------------------
 
         /**
          * @private
-         * @type {DualMultiSetMap.<string, CallManager>}
+         * @type {SyncObjectManager}
          */
-        this.syncKeyToCallManagerMap    = new DualMultiSetMap();
+        this.syncObjectManager   = syncObjectManager;
     },
 
 
@@ -63,42 +57,25 @@ var CallService = Class.extend(Obj, {
 
     /**
      * @param {string} syncKey
-     * @param {CallManager} callManager
+     * @param {function(error)} callback
      */
-    deregisterCallManagerForSyncKey: function(syncKey, callManager) {
-        this.syncKeyToCallManagerMap.removeKeyValuePair(syncKey, callManager);
+    deleteSyncObject: function(syncKey, callback){
+        this.syncObjectManager.deleteSyncObjectBySyncKey(syncKey, callback);
     },
 
     /**
      * @param {string} syncKey
-     * @return {Set.<CallManager>}
+     * @param {Object} syncObject
+     * @param {function(error, SyncObject)} callback
      */
-    getCallManagerSetBySyncKey: function(syncKey) {
-        return this.syncKeyToCallManagerMap.getValue(syncKey);
-    },
-
-    /**
-     * @param {CallManager} callManager
-     * @return {Set.<string>}
-     */
-    getSyncKeySetByCallManager: function(callManager) {
-        return this.syncKeyToCallManagerMap.getKey(callManager);
-    },
-
-    /**
-     * @param {string} syncKey
-     * @return {Boolean}
-     */
-    hasSyncKey: function(syncKey) {
-        return this.syncKeyToCallManagerMap.containsKey(syncKey);
-    },
-
-    /**
-     * @param {string} syncKey
-     * @param {CallManager} callManager
-     */
-    registerCallManagerForSyncKey: function(syncKey, callManager) {
-        this.syncKeyToCallManagerMap.put(syncKey, callManager);
+    setSyncObject: function(syncKey, syncObject, callback){
+        this.syncObjectManager.getSyncObjectBySyncKey(syncKey, function(error, syncObject) {
+            if (!error) {
+                syncObject.setSyncObject(syncObject);
+            } else {
+                callback(error);
+            }
+        });
     }
 });
 
@@ -107,4 +84,4 @@ var CallService = Class.extend(Obj, {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('syncbugserver.CallService', CallService);
+bugpack.export('syncbug.SyncObjectService', SyncObjectService);

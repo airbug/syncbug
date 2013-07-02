@@ -2,7 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugsyncserver')
+//@Package('syncbugserver')
 
 //@Export('SyncException')
 
@@ -29,17 +29,7 @@ var Exception   = bugpack.require('Exception');
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var SyncException = Class.extend(Exception, {
-
-    //-------------------------------------------------------------------------------
-    // Constructor
-    //-------------------------------------------------------------------------------
-
-    _constructor: function(type, data) {
-
-        this._super(type, data);
-    }
-});
+var SyncException = Class.extend(Exception, {});
 
 
 //-------------------------------------------------------------------------------
@@ -53,4 +43,4 @@ SyncException.NO_SUCH_OBJECT = "SyncException:NoSuchObject";
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('bugsyncserver.SyncException', SyncException);
+bugpack.export('syncbugserver.SyncException', SyncException);

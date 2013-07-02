@@ -8,7 +8,7 @@
 
 //@Require('Class')
 //@Require('Obj')
-//@Require('syncbug.SyncModel')
+//@Require('syncbug.SyncObject')
 
 //-------------------------------------------------------------------------------
 // Common Modules
@@ -23,7 +23,7 @@ var bugpack = require('bugpack').context();
 
 var Class       = bugpack.require('Class');
 var Obj         = bugpack.require('Obj');
-var SyncModel   = bugpack.require('syncbug.SyncModel');
+var SyncObject   = bugpack.require('syncbug.SyncObject');
 
 
 //-------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ var SyncBugClient = Class.extend(Obj, {
     // Constructor
     //-------------------------------------------------------------------------------
 
-    _constructor: function(bugCallClient, syncModelManager){
+    _constructor: function(bugCallClient, syncObjectManager){
 
         //-------------------------------------------------------------------------------
         // Properties
@@ -50,9 +50,9 @@ var SyncBugClient = Class.extend(Obj, {
 
         /**
          * @private
-         * @type {SyncModelManager}
+         * @type {SyncObjectManager}
          */
-        this.syncModelManager   = syncModelManager;
+        this.syncObjectManager  = syncObjectManager;
     },
 
 
@@ -61,31 +61,31 @@ var SyncBugClient = Class.extend(Obj, {
     //-------------------------------------------------------------------------------
 
     /**
-     * @param {string} key
-     * @param {
-     * 		accessKey: string
-     * 		refresh: boolean
-     * } options
-     * @param {function(exception, syncModel)} callback
+     * @param {string} syncKey
+     * @param {{
+     *      accessKey: string
+     *      refresh: boolean
+     * }} options
+     * @param {function(exception, SyncObject)} callback
      */
-    get: function(key, options, callback){
+    get: function(syncKey, options, callback){
         var _this = this;
         var requestType = SyncBugClient.requestType.GET;
         var data        = {
             options: options
         };
 
-        this.syncModelManager.findSyncModelByKey(key, function(error, syncModel) {
-            if (!error && syncModel && !options.refresh) {
-                callback(null, syncModel);
+        this.syncObjectManager.findSyncObjectBySyncKey(syncKey, function(error, SyncObject) {
+            if (!error && SyncObject && !options.refresh) {
+                callback(null, SyncObject);
             } else {
                 _this.bugCallClient.request(requestType, data, function(exception, callResponse) {
                     if (!exception) {
                         var responseType = callResponse.getType();
                         if (responseType === "getResponse") {
-                            var syncModelObj = callResponse.getData().syncObject;
-                            _this.syncModelManager.createSyncModel(syncModelObj, function(error, syncModel){
-                                callback(error, syncModel);
+                            var syncObject = callResponse.getData().syncObject;
+                            _this.syncObjectManager.createSyncObject(syncKey, syncObject, function(error, syncObject){
+                                callback(error, syncObject);
                             });
                         } else {
                             callback(new Error("Unknown responseType '" + responseType + "'"));
@@ -104,14 +104,30 @@ var SyncBugClient = Class.extend(Obj, {
 
     /**
      * @param {string} key
+     * @param {*} options
+     * @param {function(exception)} callback
+     */
+    delete: function(key, options, callback){
+        var requestType = SyncBugClient.requestType.DELETE;
+        var data        = {
+            syncKey: syncKey,
+            options: options
+        };
+        this.bugCallClient.request(requestType, data, function(exception, callResponse) {
+            callback(exception);
+        });
+    },
+
+    /**
+     * @param {string} syncKey
      * @param {*} syncObject
      * @param {*} options
      * @param {function(exception, {*})} callback
      */
-    put: function(key, syncObject, options, callback){
+    set: function(syncKey, syncObject, options, callback){
         var requestType = SyncBugClient.requestType.PUT;
         var data        = {
-            key: key,
+            syncKey: syncKey,
             syncObject: syncObject,
             options: options
         };
@@ -126,10 +142,10 @@ var SyncBugClient = Class.extend(Obj, {
      * @param {*} options
      * @param {function(exception)} callback
      */
-    remove: function(key, options, callback){
-        var requestType = SyncBugClient.requestType.REMOVE;
+    unsync: function(key, options, callback) {
+        var requestType = SyncBugClient.requestType.UNSYNC;
         var data        = {
-            key: key,
+            syncKey: syncKey,
             options: options
         };
         this.bugCallClient.request(requestType, data, function(exception, callResponse) {
@@ -147,9 +163,10 @@ var SyncBugClient = Class.extend(Obj, {
  * @enum {string}
  */
 SyncBugClient.requestType = {
+    DELETE: "delete",
     GET: "get",
-    PUT: "put",
-    REMOVE: "remove"
+    SET: "set",
+    UNSYNC: "unsync"
 };
 
 

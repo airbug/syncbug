@@ -68,63 +68,85 @@ var SyncbugController = Class.extend(Obj, {
     configure: function(callback){
         var _this = this;
         this.bugCallRouter.addAll({
-            get: function(request, responder){
+            delete: function(request, responder) {
                 var data    = request.getData();
-                var key     = data.key;
                 var options = data.options;
-                _this.syncObjectService.getSyncObject(request.getCallManager(), key, options, function(error, syncObject) {
+                var syncKey = data.syncKey;
+                _this.syncObjectService.deleteSyncObject(request.getCallManager(), syncKey, options, function(error){
                     var data        = null;
                     var response    = null;
                     if (!error) {
-                        data        = {syncObject: syncObject};
-                        response    = responder.response("getResponse", data);
+                        data        = {syncKey: syncKey};
+                        response    = responder.response("deleteResponse", data);
                     } else {
-                        data        = {
-                            key: key,
-                            error: error
+                        data    = {
+                            syncKey: syncKey,
+                            exception: exception.toObject()
                         };
-                        response    = responder.response("getError", data);
+                        response    = responder.response("deleteError", data);
                     }
                     responder.sendResponse(response);
                 });
             },
-            put: function(request, responder) {
+            get: function(request, responder){
                 var data        = request.getData();
-                var key         = data.key;
+                var syncKey     = data.syncKey;
                 var options     = data.options;
+                _this.syncObjectService.getSyncObject(request.getCallManager(), syncKey, options, function(exception, syncObject) {
+                    var data        = null;
+                    var response    = null;
+                    if (!exception) {
+                        data        = {
+                            syncObject: syncObject
+                        };
+                        response    = responder.response("getResponse", data);
+                    } else {
+                        data        = {
+                            syncKey: syncKey,
+                            exception: exception.toObject()
+                        };
+                        response    = responder.response("getException", data);
+                    }
+                    responder.sendResponse(response);
+                });
+            },
+            set: function(request, responder) {
+                var data        = request.getData();
+                var syncKey     = data.syncKey;
                 var syncObject  = data.syncObject;
-                _this.syncObjectService.putSyncObject(request.getCallManager(), key, options, syncObject, function(error) {
+                var options     = data.options;
+                _this.syncObjectService.setSyncObject(request.getCallManager(), syncKey, syncObject, options, function(exception) {
                     var data        = null;
                     var response    = null;
                     if (!error) {
                         data        = {};
-                        response    = responder.response("putResponse", data);
+                        response    = responder.response("setResponse", data);
                     } else {
                         data        = {
-                            key: key,
-                            error: error
+                            syncKey: syncKey,
+                            exception: exception.toObject()
                         };
-                        response    = responder.response("putError", data);
+                        response    = responder.response("setException", data);
                     }
                     responder.sendResponse(response);
                 })
             },
-            remove: function(request, responder){
+            unsync: function(request, responder) {
                 var data    = request.getData();
-                var options     = data.options;
-                var key     = data.key;
-                _this.syncObjectService.removeSyncModel(request.getCallManager(), key, options, function(error){
+                var options = data.options;
+                var syncKey = data.syncKey;
+                _this.syncObjectService.unsyncSyncObject(request.getCallManager(), syncKey, options, function(error){
                     var data        = null;
                     var response    = null;
                     if (!error) {
-                        data        = {key: key};
-                        response    = responder.response("removeResponse", data);
+                        data        = {syncKey: syncKey};
+                        response    = responder.response("unsyncResponse", data);
                     } else {
                         data    = {
-                            key: key,
+                            syncKey: syncKey,
                             error: error
                         };
-                        response    = responder.response("removeError", data);
+                        response    = responder.response("unsyncError", data);
                     }
                     responder.sendResponse(response);
                 });
