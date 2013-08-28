@@ -8,9 +8,9 @@
 
 //@Require('Class')
 //@Require('Obj')
-//@Require('bugcall.BugCallServerEvent')
+//@Require('bugcall.CallEvent')
 //@Require('bugflow.BugFlow')
-//@Require('synccache.SyncCacheEvent')
+//@Require('synccache.CacheEvent')
 //@Require('syncbugserver.SyncException')
 
 
@@ -27,9 +27,9 @@ var bugpack = require('bugpack').context();
 
 var Class               = bugpack.require('Class');
 var Obj                 = bugpack.require('Obj');
-var BugCallServerEvent  = bugpack.require('bugcall.BugCallServerEvent');
+var CallEvent           = bugpack.require('bugcall.CallEvent');
 var BugFlow             = bugpack.require('bugflow.BugFlow');
-var SyncCacheEvent      = bugpack.require('synccache.SyncCacheEvent');
+var CacheEvent          = bugpack.require('synccache.CacheEvent');
 var SyncException       = bugpack.require('syncbugserver.SyncException');
 
 
@@ -265,9 +265,9 @@ var SyncObjectService = Class.extend(Obj, {
      * @private
      */
     initialize: function() {
-        this.syncCache.on(SyncCacheEvent.DELETE, this.hearSyncCacheDelete, this);
-        this.syncCache.on(SyncCacheEvent.SET, this.hearSyncCacheSet, this);
-        this.bugCallServer.on(BugCallServerEvent.CALL_CLOSED, this.hearBugCallServerCallClosed, this);
+        this.syncCache.on(CacheEvent.DELETE, this.hearSyncCacheDelete, this);
+        this.syncCache.on(CacheEvent.SET, this.hearSyncCacheSet, this);
+        this.bugCallServer.on(CallEvent.CLOSED, this.hearBugCallServerCallClosed, this);
     },
 
     /**
@@ -355,7 +355,7 @@ var SyncObjectService = Class.extend(Obj, {
 
     /**
      * @private
-     * @param {BugCallServerEvent} event
+     * @param {CallEvent} event
      */
     hearBugCallServerCallClosed: function(event) {
         var data            = event.getData();
@@ -365,7 +365,7 @@ var SyncObjectService = Class.extend(Obj, {
 
     /**
      * @private
-     * @param {SyncCacheEvent} syncCacheEvent
+     * @param {CacheEvent} syncCacheEvent
      */
     hearSyncCacheDelete: function(syncCacheEvent) {
         var _this           = this;
@@ -395,7 +395,7 @@ var SyncObjectService = Class.extend(Obj, {
 
     /**
      * @private
-     * @param {SyncCacheEvent} syncCacheEvent
+     * @param {CacheEvent} syncCacheEvent
      */
     hearSyncCacheSet: function(syncCacheEvent) {
         var key     = syncCacheEvent.getKey();

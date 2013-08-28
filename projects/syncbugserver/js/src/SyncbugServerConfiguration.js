@@ -9,7 +9,6 @@
 
 //@Require('Class')
 //@Require('Obj')
-//@Require('annotate.Annotate')
 //@Require('bugcall.BugCallServer')
 //@Require('bugcall.CallServer')
 //@Require('bugflow.BugFlow')
@@ -19,6 +18,7 @@
 //@Require('bugioc.IConfiguration')
 //@Require('bugioc.ModuleAnnotation')
 //@Require('bugioc.PropertyAnnotation')
+//@Require('bugmeta.BugMeta')
 //@Require('bugroutes.BugCallRouter')
 //@Require('express.ExpressApp')
 //@Require('express.ExpressServer')
@@ -52,7 +52,6 @@ var synccache               = require('synccache');
 
 var Class                   = bugpack.require('Class');
 var Obj                     = bugpack.require('Obj');
-var Annotate                = bugpack.require('annotate.Annotate');
 var BugCallServer           = bugpack.require('bugcall.BugCallServer');
 var CallServer              = bugpack.require('bugcall.CallServer');
 var BugFlow                 = bugpack.require('bugflow.BugFlow');
@@ -62,6 +61,7 @@ var ConfigurationAnnotation = bugpack.require('bugioc.ConfigurationAnnotation');
 var IConfiguration          = bugpack.require('bugioc.IConfiguration');
 var ModuleAnnotation        = bugpack.require('bugioc.ModuleAnnotation');
 var PropertyAnnotation      = bugpack.require('bugioc.PropertyAnnotation');
+var BugMeta                 = bugpack.require('bugmeta.BugMeta');
 var BugCallRouter           = bugpack.require('bugroutes.BugCallRouter');
 var ExpressApp              = bugpack.require('express.ExpressApp');
 var ExpressServer           = bugpack.require('express.ExpressServer');
@@ -81,12 +81,11 @@ var SyncObjectService       = bugpack.require('syncbugserver.SyncObjectService')
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var annotate                = Annotate.annotate;
 var arg                     = ArgAnnotation.arg;
+var bugmeta                 = BugMeta.context();
 var configuration           = ConfigurationAnnotation.configuration;
 var module                  = ModuleAnnotation.module;
 var property                = PropertyAnnotation.property;
-
 var $parallel               = BugFlow.$parallel;
 var $series                 = BugFlow.$series;
 var $task                   = BugFlow.$task;
@@ -450,10 +449,10 @@ Class.implement(SyncbugServerConfiguration, IConfiguration);
 
 
 //-------------------------------------------------------------------------------
-// Annotate
+// BugMeta
 //-------------------------------------------------------------------------------
 
-annotate(SyncbugServerConfiguration).with(
+bugmeta.annotate(SyncbugServerConfiguration).with(
     configuration().modules([
 
 
@@ -471,11 +470,11 @@ annotate(SyncbugServerConfiguration).with(
 
         module("expressApp")
             .args([
-                arg("config").ref("config")
+                arg().ref("config")
             ]),
         module("expressServer")
             .args([
-                arg("expressApp").ref("expressApp")
+                arg().ref("expressApp")
             ]),
 
 
@@ -492,13 +491,13 @@ annotate(SyncbugServerConfiguration).with(
 
         module("socketIoManager")
             .args([
-                arg("socketIoServer").ref("socketIoServer")
+                arg().ref("socketIoServer")
             ]),
         module("socketIoServer")
             .args([
-                arg("config").ref("socketIoServerConfig"),
-                arg("expressServer").ref("expressServer"),
-                arg("handshaker").ref("handshaker")
+                arg().ref("socketIoServerConfig"),
+                arg().ref("expressServer"),
+                arg().ref("handshaker")
             ]),
         module("socketIoServerConfig"),
 
@@ -509,15 +508,15 @@ annotate(SyncbugServerConfiguration).with(
 
         module("bugCallRouter")
             .args([
-                arg("bugCallServer").ref("bugCallServer")
+                arg().ref("bugCallServer")
             ]),
         module("bugCallServer")
             .args([
-                arg("callServer").ref("callServer")
+                arg().ref("callServer")
             ]),
         module("callServer")
             .args([
-                arg("socketIoManager").ref("socketIoManager")
+                arg().ref("socketIoManager")
             ]),
 
 
@@ -527,8 +526,8 @@ annotate(SyncbugServerConfiguration).with(
 
         module("syncbugController")
             .args([
-                arg("bugCallRouter").ref("bugCallRouter"),
-                arg("syncObjectService").ref("syncObjectService")
+                arg().ref("bugCallRouter"),
+                arg().ref("syncObjectService")
             ]),
 
 
@@ -539,10 +538,10 @@ annotate(SyncbugServerConfiguration).with(
         module("callService"),
         module("syncObjectService")
             .args([
-                arg("bugCallServer").ref("bugCallServer"),
-                arg("callService").ref("callService"),
-                arg("syncCache").ref("syncCache"),
-                arg("syncObjectManager").ref("syncObjectManager")
+                arg().ref("bugCallServer"),
+                arg().ref("callService"),
+                arg().ref("syncCache"),
+                arg().ref("syncObjectManager")
             ]),
 
 
@@ -552,8 +551,8 @@ annotate(SyncbugServerConfiguration).with(
 
         module("syncObjectManager")
             .args([
-                arg("model").ref("syncObject"),
-                arg("schema").ref("syncObjectSchema")
+                arg().ref("syncObject"),
+                arg().ref("syncObjectSchema")
             ]),
         
 

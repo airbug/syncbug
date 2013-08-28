@@ -51,7 +51,7 @@ buildProperties({
         },
         sourcePaths: [
             "./projects/syncbugserver/js/src",
-            "../bugjs/projects/annotate/js/src",
+            "../bugjs/projects/bugmeta/js/src",
             "../bugjs/projects/bugcall/js/src",
             "../bugjs/projects/bugflow/js/src",
             "../bugjs/projects/bugfs/js/src",
@@ -86,7 +86,7 @@ buildProperties({
         },
         sourcePaths: [
             "./projects/syncbugserverclient/js/src",
-            "../bugjs/projects/annotate/js/src",
+            "../bugjs/projects/bugmeta/js/src",
             "../bugjs/projects/bugcall/js/src",
             "../bugjs/projects/bugflow/js/src",
             "../bugjs/projects/bugfs/js/src",
