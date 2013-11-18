@@ -19,7 +19,7 @@
 //@Require('bugioc.ModuleAnnotation')
 //@Require('bugioc.PropertyAnnotation')
 //@Require('bugmeta.BugMeta')
-//@Require('bugroutes.BugCallRouter')
+//@Require('bugroute:bugcall.BugCallRouter')
 //@Require('express.ExpressApp')
 //@Require('express.ExpressServer')
 //@Require('handshaker.Handshaker')
@@ -62,7 +62,7 @@ var IConfiguration          = bugpack.require('bugioc.IConfiguration');
 var ModuleAnnotation        = bugpack.require('bugioc.ModuleAnnotation');
 var PropertyAnnotation      = bugpack.require('bugioc.PropertyAnnotation');
 var BugMeta                 = bugpack.require('bugmeta.BugMeta');
-var BugCallRouter           = bugpack.require('bugroutes.BugCallRouter');
+var BugCallRouter           = bugpack.require('bugroute:bugcall.BugCallRouter');
 var ExpressApp              = bugpack.require('express.ExpressApp');
 var ExpressServer           = bugpack.require('express.ExpressServer');
 var Handshaker              = bugpack.require('handshaker.Handshaker');
