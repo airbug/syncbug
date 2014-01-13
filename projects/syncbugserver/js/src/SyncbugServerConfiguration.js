@@ -170,11 +170,18 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
 
 
     //-------------------------------------------------------------------------------
-    // Configuration Lifecycle
+    // IConfiguration Implementation
     //-------------------------------------------------------------------------------
 
     /**
-     * @param {function(error)} callback
+     * @param {function(Throwable=)} callback
+     */
+    deinitializeConfiguration: function(callback) {
+        callback();
+    },
+
+    /**
+     * @param {function(Throwable=)} callback
      */
     initializeConfiguration: function(callback) {
         var _this = this;
@@ -253,6 +260,10 @@ var SyncbugServerConfiguration = Class.extend(Obj, {
         ]).execute(callback);
     },
 
+
+    //-------------------------------------------------------------------------------
+    // Public Methods
+    //-------------------------------------------------------------------------------
 
     /**
      * @param {BugCallServer} bugCallServer
@@ -453,7 +464,7 @@ Class.implement(SyncbugServerConfiguration, IConfiguration);
 //-------------------------------------------------------------------------------
 
 bugmeta.annotate(SyncbugServerConfiguration).with(
-    configuration().modules([
+    configuration("syncbugServerConfiguration").modules([
 
 
         //-------------------------------------------------------------------------------
